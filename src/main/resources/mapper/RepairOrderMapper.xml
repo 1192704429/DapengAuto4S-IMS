@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.repair.manage.module.repair_order.mapper.RepairOrderMapper">
+
+    <sql id="whereCondition">
+        <where>
+            <if test="entity.id != null">
+                AND repairOrder.id = #{entity.id}
+            </if>
+            <if test="entity.status != null">
+                AND repairOrder.status = #{entity.status}
+            </if>
+            <if test="entity.customerName != null and entity.customerName != ''">
+                AND customer.customer_name LIKE CONCAT('%', #{entity.customerName}, '%')
+            </if>
+            <if test="entity.plateNumber != null and entity.plateNumber != ''">
+                AND vehicle.plate_number LIKE CONCAT('%', #{entity.plateNumber}, '%')
+            </if>
+            <if test="entity.realName != null and entity.realName != ''">
+                AND sysUser.real_name LIKE CONCAT('%', #{entity.realName}, '%')
+            </if>
+            <if test="entity.realName2 != null and entity.realName2 != ''">
+                AND sysUser2.real_name LIKE CONCAT('%', #{entity.realName2}, '%')
+            </if>
+            <if test="entity.engineerUserId != null">
+                AND repairOrder.engineer_user_id = #{entity.engineerUserId}
+            </if>
+            <if test="entity.repairItemCategoryId != null">
+                AND repairOrder.repair_item_category_id = #{entity.repairItemCategoryId}
+            </if>
+        </where>
+    </sql>
+
+    <!-- 分页查询 -->
+    <select id="pageQuery" resultType="com.repair.manage.module.repair_order.entity.RepairOrder">
+        SELECT repairOrder.*
+        , customer.customer_name AS customerName
+        , vehicle.plate_number AS plateNumber
+        , sysUser.real_name AS realName
+        , sysUser2.real_name AS realName2
+        , repairItemCategory.category_name AS categoryName
+        FROM repair_order repairOrder
+        LEFT JOIN customer customer ON repairOrder.customer_id = customer.id
+        LEFT JOIN vehicle vehicle ON repairOrder.vehicle_id = vehicle.id
+        LEFT JOIN sys_user sysUser ON repairOrder.service_user_id = sysUser.id
+        LEFT JOIN sys_user sysUser2 ON repairOrder.engineer_user_id = sysUser2.id
+        LEFT JOIN repair_item_category repairItemCategory ON repairOrder.repair_item_category_id = repairItemCategory.id
+        <include refid="whereCondition"/>
+        ORDER BY repairOrder.create_time DESC
+        LIMIT #{offset}, #{limit}
+    </select>
+
+    <!-- 查询总数 -->
+    <select id="countQuery" resultType="java.lang.Long">
+        SELECT COUNT(1)
+        FROM repair_order repairOrder
+        LEFT JOIN customer customer ON repairOrder.customer_id = customer.id
+        LEFT JOIN vehicle vehicle ON repairOrder.vehicle_id = vehicle.id
+        LEFT JOIN sys_user sysUser ON repairOrder.service_user_id = sysUser.id
+        LEFT JOIN sys_user sysUser2 ON repairOrder.engineer_user_id = sysUser2.id
+        LEFT JOIN repair_item_category repairItemCategory ON repairOrder.repair_item_category_id = repairItemCategory.id
+        <include refid="whereCondition"/>
+    </select>
+
+    <!-- 列表查询（不分页） -->
+    <select id="listQuery" resultType="com.repair.manage.module.repair_order.entity.RepairOrder">
+        SELECT repairOrder.*
+        , customer.customer_name AS customerName
+        , vehicle.plate_number AS plateNumber
+        , sysUser.real_name AS realName
+        , sysUser2.real_name AS realName2
+        , repairItemCategory.category_name AS categoryName
+        FROM repair_order repairOrder
+        LEFT JOIN customer customer ON repairOrder.customer_id = customer.id
+        LEFT JOIN vehicle vehicle ON repairOrder.vehicle_id = vehicle.id
+        LEFT JOIN sys_user sysUser ON repairOrder.service_user_id = sysUser.id
+        LEFT JOIN sys_user sysUser2 ON repairOrder.engineer_user_id = sysUser2.id
+        LEFT JOIN repair_item_category repairItemCategory ON repairOrder.repair_item_category_id = repairItemCategory.id
+        <include refid="whereCondition"/>
+        ORDER BY repairOrder.create_time DESC
+    </select>
+
+    <!-- 根据ID查询 -->
+    <select id="getById" resultType="com.repair.manage.module.repair_order.entity.RepairOrder">
+        SELECT repairOrder.*
+        , customer.customer_name AS customerName
+        , vehicle.plate_number AS plateNumber
+        , sysUser.real_name AS realName
+        , sysUser2.real_name AS realName2
+        , repairItemCategory.category_name AS categoryName
+        FROM repair_order repairOrder
+        LEFT JOIN customer customer ON repairOrder.customer_id = customer.id
+        LEFT JOIN vehicle vehicle ON repairOrder.vehicle_id = vehicle.id
+        LEFT JOIN sys_user sysUser ON repairOrder.service_user_id = sysUser.id
+        LEFT JOIN sys_user sysUser2 ON repairOrder.engineer_user_id = sysUser2.id
+        LEFT JOIN repair_item_category repairItemCategory ON repairOrder.repair_item_category_id = repairItemCategory.id
+        WHERE repairOrder.id = #{id}
+    </select>
+
+    <!-- 查询工单数最少的工程师ID（仅统计维修中status=1的工单） -->
+    <select id="selectEngineerWithFewestOrders" resultType="java.lang.Long">
+        SELECT su.id
+        FROM sys_user su
+        LEFT JOIN repair_order ro ON ro.engineer_user_id = su.id AND ro.status = 1
+        WHERE su.role_type = 'engineer' AND su.status = 1
+        GROUP BY su.id
+        ORDER BY COUNT(ro.id) ASC
+        LIMIT 1
+    </select>
+
+</mapper>

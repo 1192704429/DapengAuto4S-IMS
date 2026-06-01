@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.repair.manage.module.repair_detail.mapper.RepairDetailMapper">
+
+    <sql id="whereCondition">
+        <where>
+            <if test="entity.id != null">
+                AND repairDetail.id = #{entity.id}
+            </if>
+            <if test="entity.repairOrderId != null">
+                AND repairDetail.repair_order_id = #{entity.repairOrderId}
+            </if>
+        </where>
+    </sql>
+
+    <!-- 分页查询 -->
+    <select id="pageQuery" resultType="com.repair.manage.module.repair_detail.entity.RepairDetail">
+        SELECT repairDetail.*
+        , repairOrder.order_no AS orderNo
+        FROM repair_detail repairDetail
+        LEFT JOIN repair_order repairOrder ON repairDetail.repair_order_id = repairOrder.id
+        <include refid="whereCondition"/>
+        ORDER BY repairDetail.create_time DESC
+        LIMIT #{offset}, #{limit}
+    </select>
+
+    <!-- 查询总数 -->
+    <select id="countQuery" resultType="java.lang.Long">
+        SELECT COUNT(1)
+        FROM repair_detail repairDetail
+        LEFT JOIN repair_order repairOrder ON repairDetail.repair_order_id = repairOrder.id
+        <include refid="whereCondition"/>
+    </select>
+
+    <!-- 列表查询（不分页） -->
+    <select id="listQuery" resultType="com.repair.manage.module.repair_detail.entity.RepairDetail">
+        SELECT repairDetail.*
+        , repairOrder.order_no AS orderNo
+        FROM repair_detail repairDetail
+        LEFT JOIN repair_order repairOrder ON repairDetail.repair_order_id = repairOrder.id
+        <include refid="whereCondition"/>
+        ORDER BY repairDetail.create_time DESC
+    </select>
+
+    <!-- 根据ID查询 -->
+    <select id="getById" resultType="com.repair.manage.module.repair_detail.entity.RepairDetail">
+        SELECT repairDetail.*
+        , repairOrder.order_no AS orderNo
+        FROM repair_detail repairDetail
+        LEFT JOIN repair_order repairOrder ON repairDetail.repair_order_id = repairOrder.id
+        WHERE repairDetail.id = #{id}
+    </select>
+
+</mapper>

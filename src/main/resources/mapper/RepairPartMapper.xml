@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.repair.manage.module.repair_part.mapper.RepairPartMapper">
+
+    <sql id="whereCondition">
+        <where>
+            <if test="entity.id != null">
+                AND repairPart.id = #{entity.id}
+            </if>
+            <if test="entity.repairOrderId != null">
+                AND repairPart.repair_order_id = #{entity.repairOrderId}
+            </if>
+            <if test="entity.partName != null and entity.partName != ''">
+                AND part.part_name LIKE CONCAT('%', #{entity.partName}, '%')
+            </if>
+        </where>
+    </sql>
+
+    <!-- 分页查询 -->
+    <select id="pageQuery" resultType="com.repair.manage.module.repair_part.entity.RepairPart">
+        SELECT repairPart.*
+        , repairOrder.order_no AS orderNo
+        , part.part_name AS partName
+        , part.sale_price AS salePrice
+        FROM repair_part repairPart
+        LEFT JOIN repair_order repairOrder ON repairPart.repair_order_id = repairOrder.id
+        LEFT JOIN part part ON repairPart.part_id = part.id
+        <include refid="whereCondition"/>
+        ORDER BY repairPart.create_time DESC
+        LIMIT #{offset}, #{limit}
+    </select>
+
+    <!-- 查询总数 -->
+    <select id="countQuery" resultType="java.lang.Long">
+        SELECT COUNT(1)
+        FROM repair_part repairPart
+        LEFT JOIN repair_order repairOrder ON repairPart.repair_order_id = repairOrder.id
+        LEFT JOIN part part ON repairPart.part_id = part.id
+        <include refid="whereCondition"/>
+    </select>
+
+    <!-- 列表查询（不分页） -->
+    <select id="listQuery" resultType="com.repair.manage.module.repair_part.entity.RepairPart">
+        SELECT repairPart.*
+        , repairOrder.order_no AS orderNo
+        , part.part_name AS partName
+        , part.sale_price AS salePrice
+        FROM repair_part repairPart
+        LEFT JOIN repair_order repairOrder ON repairPart.repair_order_id = repairOrder.id
+        LEFT JOIN part part ON repairPart.part_id = part.id
+        <include refid="whereCondition"/>
+        ORDER BY repairPart.create_time DESC
+    </select>
+
+    <!-- 根据ID查询 -->
+    <select id="getById" resultType="com.repair.manage.module.repair_part.entity.RepairPart">
+        SELECT repairPart.*
+        , repairOrder.order_no AS orderNo
+        , part.part_name AS partName
+        , part.sale_price AS salePrice
+        FROM repair_part repairPart
+        LEFT JOIN repair_order repairOrder ON repairPart.repair_order_id = repairOrder.id
+        LEFT JOIN part part ON repairPart.part_id = part.id
+        WHERE repairPart.id = #{id}
+    </select>
+
+    <!-- 按工单ID查询配件使用（含配件销售价） -->
+    <select id="listByRepairOrderIdWithPrice" resultType="com.repair.manage.module.repair_part.entity.RepairPart">
+        SELECT repairPart.*
+        , repairOrder.order_no AS orderNo
+        , part.part_name AS partName
+        , part.sale_price AS salePrice
+        FROM repair_part repairPart
+        LEFT JOIN repair_order repairOrder ON repairPart.repair_order_id = repairOrder.id
+        LEFT JOIN part part ON repairPart.part_id = part.id
+        WHERE repairPart.repair_order_id = #{repairOrderId}
+        ORDER BY repairPart.create_time ASC
+    </select>
+
+</mapper>

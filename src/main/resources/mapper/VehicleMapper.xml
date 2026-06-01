@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.repair.manage.module.vehicle.mapper.VehicleMapper">
+
+    <sql id="whereCondition">
+        <where>
+            <if test="entity.id != null">
+                AND vehicle.id = #{entity.id}
+            </if>
+            <if test="entity.plateNumber != null and entity.plateNumber != ''">
+                AND vehicle.plate_number LIKE CONCAT('%', #{entity.plateNumber}, '%')
+            </if>
+            <if test="entity.vinCode != null and entity.vinCode != ''">
+                AND vehicle.vin_code LIKE CONCAT('%', #{entity.vinCode}, '%')
+            </if>
+            <if test="entity.vehicleType != null">
+                AND vehicle.vehicle_type = #{entity.vehicleType}
+            </if>
+            <if test="entity.customerId != null">
+                AND vehicle.customer_id = #{entity.customerId}
+            </if>
+            <if test="entity.customerName != null and entity.customerName != ''">
+                AND customer.customer_name LIKE CONCAT('%', #{entity.customerName}, '%')
+            </if>
+        </where>
+    </sql>
+
+    <!-- 分页查询 -->
+    <select id="pageQuery" resultType="com.repair.manage.module.vehicle.entity.Vehicle">
+        SELECT vehicle.*
+        , customer.customer_name AS customerName
+        FROM vehicle vehicle
+        LEFT JOIN customer customer ON vehicle.customer_id = customer.id
+        <include refid="whereCondition"/>
+        ORDER BY vehicle.create_time DESC
+        LIMIT #{offset}, #{limit}
+    </select>
+
+    <!-- 查询总数 -->
+    <select id="countQuery" resultType="java.lang.Long">
+        SELECT COUNT(1)
+        FROM vehicle vehicle
+        LEFT JOIN customer customer ON vehicle.customer_id = customer.id
+        <include refid="whereCondition"/>
+    </select>
+
+    <!-- 列表查询（不分页） -->
+    <select id="listQuery" resultType="com.repair.manage.module.vehicle.entity.Vehicle">
+        SELECT vehicle.*
+        , customer.customer_name AS customerName
+        FROM vehicle vehicle
+        LEFT JOIN customer customer ON vehicle.customer_id = customer.id
+        <include refid="whereCondition"/>
+        ORDER BY vehicle.create_time DESC
+    </select>
+
+    <!-- 根据ID查询 -->
+    <select id="getById" resultType="com.repair.manage.module.vehicle.entity.Vehicle">
+        SELECT vehicle.*
+        , customer.customer_name AS customerName
+        FROM vehicle vehicle
+        LEFT JOIN customer customer ON vehicle.customer_id = customer.id
+        WHERE vehicle.id = #{id}
+    </select>
+
+</mapper>

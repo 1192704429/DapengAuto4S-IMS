@@ -1,0 +1,46 @@
+server:
+  port: 8086
+spring:
+  profiles:
+    active: dev
+  application:
+    name: auto_repair_management # 应用名称(也做为SHA-256加解密的盐值)
+  datasource:
+    type: com.alibaba.druid.pool.DruidDataSource
+    url: jdbc:mysql://127.0.0.1:3306/weixiu1?useUnicode=true&characterEncoding=UTF8&useSSL=false&serverTimezone=Asia/Shanghai&connectionCollation=utf8mb4_unicode_ci
+    username: root
+    password: root
+    driver-class-name: com.mysql.cj.jdbc.Driver
+  servlet:
+    multipart:
+      max-file-size: 500MB
+      max-request-size: 500MB
+
+# 本地文件上传配置开始
+file:
+  upload-dir: D:\\uploads\\  # 上传文件的目录
+  access-url: http://localhost:${server.port}/uploads  # 访问文件的URL前缀
+# 本地文件上传配置结束
+
+secret-key: 1234567890123456 # 密钥(默认值)
+check-captcha: false  # 是否开启验证码校验
+
+mybatis-plus:
+  #sql语句Xml扫描
+  mapper-locations: classpath:/mapper/**/*.xml
+  #实体扫描，多个package用逗号或者分号分隔
+  typeAliasesPackage: com.repair.manage.entity
+  global-config:
+    #数据库相关配置
+    db-config:
+      #主键类型 AUTO:"数据库ID自增",INPUT:"用户输入ID",ID_WORKER:"全局唯一ID (数字类型唯一ID)",UUID:"全局唯一ID UUID";
+      id-type: AUTO
+      logic-delete-field: 1
+      logic-not-delete-value: 0
+    banner: false
+  #原生配置
+  configuration:
+    map-underscore-to-camel-case: true
+    cache-enabled: false
+    call-setters-on-nulls: true
+    jdbc-type-for-null: 'null'

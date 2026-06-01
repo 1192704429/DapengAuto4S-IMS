@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.repair.manage.basic.mapper.EchartsMapper">
+
+    <select id="countUserByRoleType" resultType="com.repair.manage.vo.EchartsDataVO">
+        SELECT CASE ur.role_type WHEN 'admin' THEN '管理员' WHEN 'service' THEN '客服' WHEN 'engineer' THEN '售后技师' WHEN 'finance' THEN '财务' ELSE '其他' END AS name, COUNT(*) AS value
+        FROM sys_user ur
+        <if test="roleTypeStr != null and roleTypeStr != ''">WHERE ur.role_type = #{roleTypeStr}</if>
+        GROUP BY ur.role_type
+    </select>
+
+    <select id="countVehicleByType" resultType="com.repair.manage.vo.EchartsDataVO">
+        SELECT CASE v.vehicle_type WHEN 0 THEN '轿车' WHEN 1 THEN 'SUV' WHEN 2 THEN '面包车' WHEN 3 THEN '其他' END AS name, COUNT(*) AS value FROM vehicle v <if test="vehicleType != null and vehicleType != -1">WHERE v.vehicle_type = #{vehicleType}</if> GROUP BY v.vehicle_type
+    </select>
+
+    <select id="countRepairOrderByStatus" resultType="com.repair.manage.vo.EchartsDataVO">
+        SELECT CASE ro.status WHEN 0 THEN '待派单' WHEN 1 THEN '作业中' WHEN 2 THEN '已完成' END AS name, COUNT(*) AS value FROM repair_order ro <if test="startTime != null and startTime != ''">AND ro.create_time &gt;= #{startTime}</if> <if test="endTime != null and endTime != ''">AND ro.create_time &lt;= #{endTime}</if> <if test="status != null and status != -1">WHERE ro.status = #{status}</if> GROUP BY ro.status
+    </select>
+
+    <select id="countPurchaseOrderByStatus" resultType="com.repair.manage.vo.EchartsDataVO">
+        SELECT CASE po.status WHEN 0 THEN '待审核' WHEN 1 THEN '审核通过' WHEN 2 THEN '已入库' END AS name, COUNT(*) AS value FROM purchase_order po <if test="startTime != null and startTime != ''">AND po.create_time &gt;= #{startTime}</if> <if test="endTime != null and endTime != ''">AND po.create_time &lt;= #{endTime}</if> <if test="status != null and status != -1">WHERE po.status = #{status}</if> GROUP BY po.status
+    </select>
+
+    <select id="sumFinanceByOrderType" resultType="com.repair.manage.vo.EchartsDataVO">
+        SELECT CASE fo.order_type WHEN 0 THEN '支出' WHEN 1 THEN '收入' END AS name, SUM(fo.amount) AS value
+        FROM finance_order fo
+        WHERE (fo.status IS NULL OR fo.status = 1)
+        <if test="startTime != null and startTime != ''">AND fo.create_time &gt;= #{startTime}</if>
+        <if test="endTime != null and endTime != ''">AND fo.create_time &lt;= #{endTime}</if>
+        <if test="orderType != null and orderType != -1">AND fo.order_type = #{orderType}</if>
+        GROUP BY fo.order_type
+    </select>
+
+    <select id="countPartByCategory" resultType="com.repair.manage.vo.EchartsDataVO">
+        SELECT pc.category_name AS name, SUM(p.stock) AS value FROM part p LEFT JOIN part_category pc ON p.category_id = pc.id <if test="categoryId != null and categoryId != -1">WHERE p.category_id = #{categoryId}</if> GROUP BY p.category_id, pc.category_name
+    </select>
+
+    <!-- 财务月度收支统计（近12个月） -->
+    <select id="sumFinanceByMonth" resultType="com.repair.manage.vo.FinanceMonthlyVO">
+        SELECT * FROM (
+            SELECT DATE_FORMAT(fo.create_time, '%Y-%m') AS month,
+                   IFNULL(SUM(CASE WHEN fo.order_type = 1 THEN fo.amount ELSE 0 END), 0) AS income,
+                   IFNULL(SUM(CASE WHEN fo.order_type = 0 THEN fo.amount ELSE 0 END), 0) AS expense
+            FROM finance_order fo
+            WHERE (fo.status IS NULL OR fo.status = 1)
+            <if test="startTime != null and startTime != ''">AND fo.create_time &gt;= #{startTime}</if>
+            <if test="endTime != null and endTime != ''">AND fo.create_time &lt;= #{endTime}</if>
+            GROUP BY DATE_FORMAT(fo.create_time, '%Y-%m')
+            ORDER BY month DESC
+            LIMIT 12
+        ) t ORDER BY month ASC
+    </select>
+
+</mapper>
